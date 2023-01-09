@@ -1,0 +1,86 @@
+<?php
+
+/**
+ * ProcessWire Lite YouTube Embed Module
+ *
+ * Adapted from Ryan Cramer's TextformatterVideoEmbed:
+ * https://github.com/ryancramerdesign/TextformatterVideoEmbed
+ *
+ * This module replaces plain YouTube links pasted in a CKEditor field
+ * with Paul Irish's blazing fast embed script:
+ * https://github.com/paulirish/lite-youtube-embed
+ *
+ * So for example the following links…
+ * https://youtu.be/z_DwA8We7pI
+ * https://www.youtube.com/watch?v=5UAFdL8N91U
+ * https://www.youtube.com/?v=ucmU2nbCVI8
+ *
+ * …will be converted to:
+ * <lite-youtube videoid='z_DwA8We7pI'></lite-youtube>
+ * <lite-youtube videoid='5UAFdL8N91U'></lite-youtube>
+ * <lite-youtube videoid='ucmU2nbCVI8'></lite-youtube>
+ *
+ * Note: you need to include the lite-youtube-embed stylesheet and script yourself
+ */
+
+class TextformatterLiteYouTubeEmbed extends Textformatter
+{
+    public static function getModuleInfo()
+    {
+        return array(
+            'title'     => __('Lite YouTube Embed'),
+            'version'   => 101,
+            'summary'   => __("Replaces plain YouTube links in a CKEditor field with Paul Irish's faster YouTube embed script."),
+            'author'    => 'jacmaes',
+        );
+    }
+
+    /**
+     * Format the input string
+     *
+     * @param string $str The block of text to parse
+     *
+     * The incoming string is replaced with the formatted version of itself.
+     **/
+
+
+     public function format(&$str) {
+
+       /**
+        * 1. Find YouTube video links pasted on a single paragraph line, i.e.
+        * <p>https://www.youtube.com/watch?v=adssasw9WgX</p>
+        **/
+
+        // a) perform a quick check before moving on to the more expensive regex in b)
+        if(strpos($str, '://www.youtube.com/watch') === false
+         && strpos($str, '://www.youtube.com/v/') === false
+         && strpos($str, '://youtu.be/') === false) return;
+
+       // b) regex to find YouTube link in a paragraph
+       $regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
+
+       if(!preg_match_all($regex, $str, $matches)) return;
+
+
+       /**
+        * 2. Loop through YouTube videos, find id, then replace paragraph with lite-youtube
+        *
+        **/
+
+         foreach($matches[0] as $key => $line) {
+
+          // Alternative regex that also allows to find video ID:
+          // https://gist.github.com/ghalusa/6c7f3a00fd2383e5ef33
+          // preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/// )([^"&?/ ]{11})%i', $line, $match);
+          // $video_id = $match[1];
+
+         // Find video ID
+         $video_id = $matches[2][$key];
+
+         $str = str_replace($line, "<lite-youtube videoid='$video_id'></lite-youtube>", $str);
+       }
+
+
+
+      }
+    }
