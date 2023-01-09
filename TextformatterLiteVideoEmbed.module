@@ -23,15 +23,15 @@
  * Note: you need to include the lite-youtube-embed stylesheet and script yourself
  */
 
-class TextformatterLiteYouTubeEmbed extends Textformatter
+class TextformatterLiteVideoEmbed extends Textformatter
 {
     public static function getModuleInfo()
     {
         return array(
-            'title'     => __('Lite YouTube Embed'),
-            'version'   => 101,
+            'title'     => __('Lite Video Embed'),
+            'version'   => 001,
             'summary'   => __("Replaces plain YouTube links in a CKEditor field with Paul Irish's faster YouTube embed script."),
-            'author'    => 'jacmaes',
+            'author'    => 'millipedia',
         );
     }
 
@@ -56,29 +56,44 @@ class TextformatterLiteYouTubeEmbed extends Textformatter
          && strpos($str, '://www.youtube.com/v/') === false
          && strpos($str, '://youtu.be/') === false) return;
 
-       // b) regex to find YouTube link in a paragraph
-       $regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
+        // b) regex to find YouTube link in a paragraph
+        // $regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
 
-       if(!preg_match_all($regex, $str, $matches)) return;
+       	// regex to find YT link in text field (rather than editor field).
+		    $regex = '#\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?#';
+
+       if(preg_match_all($regex, $str, $matches) > 0){
+
+        /**
+          * 2. Loop through YouTube videos, find id, then replace paragraph with lite-youtube
+          *
+          **/
+
+          foreach($matches[0] as $key => $line) {
+
+            // Alternative regex that also allows to find video ID:
+            // https://gist.github.com/ghalusa/6c7f3a00fd2383e5ef33
+            // preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/// )([^"&?/ ]{11})%i', $line, $match);
+            // $video_id = $match[1];
+
+            // params="&modestbranding=2&rel=0&enablejsapi=1"
+
+          // Find video ID
+          $video_id = $matches[2][$key];
+
+          $str = str_replace($line, "<lite-youtube videoid='$video_id' params='&modestbranding=2&rel=0&enablejsapi=1' ></lite-youtube>", $str);
+        }
 
 
-       /**
-        * 2. Loop through YouTube videos, find id, then replace paragraph with lite-youtube
-        *
-        **/
-
-         foreach($matches[0] as $key => $line) {
-
-          // Alternative regex that also allows to find video ID:
-          // https://gist.github.com/ghalusa/6c7f3a00fd2383e5ef33
-          // preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/// )([^"&?/ ]{11})%i', $line, $match);
-          // $video_id = $match[1];
-
-         // Find video ID
-         $video_id = $matches[2][$key];
-
-         $str = str_replace($line, "<lite-youtube videoid='$video_id'></lite-youtube>", $str);
        }
+
+      // can we add our script to wire->config->scripts?
+      // bd( wire()->config);
+      // $ylt_script=(dirname(__FILE__)."/TextformatterLiteVideoEmbed.js");
+      // wire()->config->scripts->add($ylt_script);
+
+      // .... no. we can't. We can try adding inline but we don't have access to our nonce... hmmm.
+
 
 
 
