@@ -119,20 +119,26 @@ export class LiteYTEmbed extends HTMLElement {
           opacity: 1;
           border-radius: 50%;
           transition: var(--lyt-animation);
-          border: 4px solid #c41c66;
+          border: 2px solid #fff;
+          background:url('/site/assets/images/play_butt.svg') no-repeat 32px center;
+          background-color: #f0f0f0;
         }
 
-        #frame:hover > #playButton {
-          border-color: #3c3c3c;
-          opacity: 1;
+
+
+        #playButton::before {
+            content: '';
+            border: 6px solid #c41c66;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            padding: 3px;
         }
 
-        #playButton:before {
-          content: '';
-          border-style: solid;
-          border-width: 16px 0 16px 32px;
-          border-color: transparent transparent transparent #3c3c3c;
-        }
+        #frame:hover > #playButton::before {
+            border-color: #3c3c3c;
+            opacity: 1;
+          }
 
         #playButton,
         #playButton:before {

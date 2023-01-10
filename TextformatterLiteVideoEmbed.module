@@ -1,101 +1,106 @@
 <?php
 
 /**
- * ProcessWire Lite YouTube Embed Module
+ * ProcessWire Lite Video Embed Module
  *
- * Adapted from Ryan Cramer's TextformatterVideoEmbed:
- * https://github.com/ryancramerdesign/TextformatterVideoEmbed
- *
- * This module replaces plain YouTube links pasted in a CKEditor field
- * with Paul Irish's blazing fast embed script:
+ * This textformatter replaces youTube links with Justin Ribeiro's web component
+ * 
+ * https://github.com/justinribeiro/lite-youtube/
+ * 
+ * Which I got to via Paul Irish's 
  * https://github.com/paulirish/lite-youtube-embed
+ * 
+ * for which jacmaes built a similar thing
+ * https://github.com/jacmaes/TextformatterLiteYouTubeEmbed)
+ * some of which is probably still in this version.
  *
- * So for example the following links…
- * https://youtu.be/z_DwA8We7pI
- * https://www.youtube.com/watch?v=5UAFdL8N91U
- * https://www.youtube.com/?v=ucmU2nbCVI8
- *
- * …will be converted to:
- * <lite-youtube videoid='z_DwA8We7pI'></lite-youtube>
- * <lite-youtube videoid='5UAFdL8N91U'></lite-youtube>
- * <lite-youtube videoid='ucmU2nbCVI8'></lite-youtube>
- *
- * Note: you need to include the lite-youtube-embed stylesheet and script yourself
+ * Note: At the moment you need to add the TextFormatterVideoLiteEmbed.js manually, 
+ * I must work out how we can do that.
+ * 
  */
 
 class TextformatterLiteVideoEmbed extends Textformatter
 {
-    public static function getModuleInfo()
-    {
-        return array(
-            'title'     => __('Lite Video Embed'),
-            'version'   => 001,
-            'summary'   => __("Replaces plain YouTube links in a CKEditor field with Paul Irish's faster YouTube embed script."),
-            'author'    => 'millipedia',
-        );
-    }
+	public static function getModuleInfo()
+	{
+		return array(
+			'title'     => __('Lite Video Embed'),
+			'version'   => 001,
+			'summary'   => __("Replaces plain video links in a text area or text input field with Justin Ribeiro's web component."),
+			'author'    => 'millipedia',
+		);
+	}
 
-    /**
-     * Format the input string
-     *
-     * @param string $str The block of text to parse
-     *
-     * The incoming string is replaced with the formatted version of itself.
-     **/
-
-
-     public function format(&$str) {
-
-       /**
-        * 1. Find YouTube video links pasted on a single paragraph line, i.e.
-        * <p>https://www.youtube.com/watch?v=adssasw9WgX</p>
-        **/
-
-        // a) perform a quick check before moving on to the more expensive regex in b)
-        if(strpos($str, '://www.youtube.com/watch') === false
-         && strpos($str, '://www.youtube.com/v/') === false
-         && strpos($str, '://youtu.be/') === false) return;
-
-        // b) regex to find YouTube link in a paragraph
-        // $regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
-
-       	// regex to find YT link in text field (rather than editor field).
-		    $regex = '#\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?#';
-
-       if(preg_match_all($regex, $str, $matches) > 0){
-
-        /**
-          * 2. Loop through YouTube videos, find id, then replace paragraph with lite-youtube
-          *
-          **/
-
-          foreach($matches[0] as $key => $line) {
-
-            // Alternative regex that also allows to find video ID:
-            // https://gist.github.com/ghalusa/6c7f3a00fd2383e5ef33
-            // preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/// )([^"&?/ ]{11})%i', $line, $match);
-            // $video_id = $match[1];
-
-            // params="&modestbranding=2&rel=0&enablejsapi=1"
-
-          // Find video ID
-          $video_id = $matches[2][$key];
-
-          $str = str_replace($line, "<lite-youtube videoid='$video_id' params='&modestbranding=2&rel=0&enablejsapi=1' ></lite-youtube>", $str);
-        }
+	/**
+	 * Format the input string
+	 *
+	 * @param string $str The block of text to parse
+	 *
+	 * The incoming string is replaced with the formatted version of itself.
+	 **/
 
 
-       }
+	public function format(&$str)
+	{
 
-      // can we add our script to wire->config->scripts?
-      // bd( wire()->config);
-      // $ylt_script=(dirname(__FILE__)."/TextformatterLiteVideoEmbed.js");
-      // wire()->config->scripts->add($ylt_script);
-
-      // .... no. we can't. We can try adding inline but we don't have access to our nonce... hmmm.
-
-
+		// perform a quick check before moving on to the more expensive regex
+		if (
+			strpos($str, '://www.youtube.com/watch') === false
+			&& strpos($str, '://www.youtube.com/v/') === false
+			&& strpos($str, '://youtu.be/') === false
+		) return;
 
 
-      }
-    }
+		// TODO: - pull these params in from a config field.
+		$lyt_params = '&modestbranding=2&rel=0&enablejsapi=1';
+
+		// TODO: apply this both on html markup fields and single text fields.
+
+		// regex to find YouTube link in a paragraph
+		// TODO: do I have one for non-cookie domain somewhere? Sure I did... anyway we could use no-cookie in the markup as an option.
+
+		// $regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
+
+		// regex to find YT link in text field (rather than editor field).
+		$regex = '#\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?#';
+
+		if (preg_match_all($regex, $str, $matches) > 0) {
+
+			foreach ($matches[0] as $key => $line) {
+
+				// Alternative regex that also allows to find video ID:
+				// https://gist.github.com/ghalusa/6c7f3a00fd2383e5ef33
+				// preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/// )([^"&?/ ]{11})%i', $line, $match);
+				// $video_id = $match[1];
+
+				// Find video ID
+				$video_id = $matches[2][$key];
+
+				$lyt_markup=$this->component_markup($line, $video_id, $lyt_params);
+
+				$str = str_replace($line, $lyt_markup, $str);
+			}
+		}
+
+		// can we add our script to wire->config->scripts?
+		// bd( wire()->config);
+		// $ylt_script=(dirname(__FILE__)."/TextformatterLiteVideoEmbed.js");
+		// wire()->config->scripts->add($ylt_script);
+
+		// .... no. we can't. We can try adding inline but we don't have access to our nonce... hmmm.
+
+
+	}
+
+	function component_markup($line, $video_id, $lyt_params){
+
+		$lyt_markup = '';
+		$lyt_markup .= '<lite-youtube videoid="' . $video_id . '" params="' . $lyt_params . '" >';
+			// fallback for old browsers.
+			$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lyt_params . '">Watch on YouTube</a>';
+		$lyt_markup .= '</lite-youtube>';
+
+		return $lyt_markup;
+
+	}
+}
