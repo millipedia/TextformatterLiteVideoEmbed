@@ -111,35 +111,6 @@ export class LiteYTEmbed extends HTMLElement {
           z-index: 1;
         }
 
-        #playButton {
-          width: 100px;
-          height: 100px;
-          background-color: #f0f0f0;
-          z-index: 1;
-          opacity: 1;
-          border-radius: 50%;
-          transition: var(--lyt-animation);
-          border: 2px solid #fff;
-          background:url('/site/assets/images/play_butt.svg') no-repeat 32px center;
-          background-color: #f0f0f0;
-        }
-
-
-
-        #playButton::before {
-            content: '';
-            border: 6px solid #c41c66;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            padding: 3px;
-        }
-
-        #frame:hover > #playButton::before {
-            border-color: #3c3c3c;
-            opacity: 1;
-          }
-
         #playButton,
         #playButton:before {
           position: absolute;
@@ -148,6 +119,36 @@ export class LiteYTEmbed extends HTMLElement {
           transform: translate3d(-50%, -50%, 0);
           cursor: inherit;
         }
+
+        #playButton {
+          width: 100px;
+          height: 100px;
+          background-color: #f0f0f0;
+          z-index: 1;
+          opacity: 1;
+          border-radius: 50%;
+          transition: var(--lyt-animation);
+          border: 8px solid #fff;
+          background:url('/site/assets/images/play_butt.svg') no-repeat 27px center;
+          background-color: #f0f0f0;
+        }
+
+
+        #playButton::before {
+            content: '';
+            border: 6px solid #c41c66;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            padding:2px;
+        }
+
+        #frame:hover > #playButton::before {
+            border-color: #3c3c3c;
+            opacity: 1;
+          }
+
+
 
         /* Post-click styles */
         .activated {

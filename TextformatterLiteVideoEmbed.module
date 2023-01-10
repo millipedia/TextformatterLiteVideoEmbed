@@ -31,6 +31,8 @@ class TextformatterLiteVideoEmbed extends Textformatter
 		);
 	}
 
+	protected $ytl_added=0;
+
 	/**
 	 * Format the input string
 	 *
@@ -53,6 +55,7 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 		// TODO: - pull these params in from a config field.
 		$lyt_params = '&modestbranding=2&rel=0&enablejsapi=1';
+
 
 		// TODO: apply this both on html markup fields and single text fields.
 
@@ -79,22 +82,27 @@ class TextformatterLiteVideoEmbed extends Textformatter
 				$lyt_markup=$this->component_markup($line, $video_id, $lyt_params);
 
 				$str = str_replace($line, $lyt_markup, $str);
+
 			}
+
+		
 		}
 
 		// can we add our script to wire->config->scripts?
-		// bd( wire()->config);
-		// $ylt_script=(dirname(__FILE__)."/TextformatterLiteVideoEmbed.js");
-		// wire()->config->scripts->add($ylt_script);
-
 		// .... no. we can't. We can try adding inline but we don't have access to our nonce... hmmm.
-
+		bd("adding sript");
+		$str=$this->add_you_tube_script($str);
 
 	}
+
+	/**
+	 * Wrap our video id in a lite-youtube tag.
+	 */
 
 	function component_markup($line, $video_id, $lyt_params){
 
 		$lyt_markup = '';
+
 		$lyt_markup .= '<lite-youtube videoid="' . $video_id . '" params="' . $lyt_params . '" >';
 			// fallback for old browsers.
 			$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lyt_params . '">Watch on YouTube</a>';
@@ -102,5 +110,50 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 		return $lyt_markup;
 
+	}
+
+	/**
+	 * Add the lite youtube script inline, and
+	 * set a flag so we only load it once.
+	 */
+	function add_you_tube_script($str){
+
+
+		$script='';
+
+		// have we done this before?
+		// $already_added=wire()->page->get('lyt_script_added');
+		if (strpos($str, 'millco_lite_youtube')){
+			return $str;
+			bd("found script");
+		}
+
+
+		// if(!$already_added){
+		// 	// and set a flag so we know we've already added it.
+		// 	wire()->page->set('lyt_script_added', 1);
+		// }
+
+		// if not then load the script into a string
+
+
+		// do we have a nonce to add to our scripts?
+		if(wire()->page->get('nonce')) {
+			$nonce=' nonce="' . wire()->page->get('nonce') .'" ';
+		};
+
+		$ylt_script=(dirname(__FILE__)."/TextformatterLiteVideoEmbed.js");
+
+		if(file_exists($ylt_script)){
+			$script='<script id="millco_lite_youtube" ' . $nonce . ' type="module">';
+				$script.=file_get_contents($ylt_script);
+			$script.='</script>';
+
+
+		}else{
+			$script.='file not found';
+		}
+
+		return $str.$script;
 	}
 }
