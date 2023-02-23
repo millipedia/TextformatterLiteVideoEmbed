@@ -118,7 +118,6 @@ class TextformatterLiteVideoEmbed extends Textformatter
 	 */
 	function add_you_tube_script($str){
 
-
 		$script='';
 
 		// have we done this before?
@@ -128,7 +127,6 @@ class TextformatterLiteVideoEmbed extends Textformatter
 			bd("found script");
 		}
 
-
 		// if(!$already_added){
 		// 	// and set a flag so we know we've already added it.
 		// 	wire()->page->set('lyt_script_added', 1);
@@ -136,15 +134,28 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 		// if not then load the script into a string
 
-
 		// do we have a nonce to add to our scripts?
+		$nonce='';
+
+		// To use this you need to have a page variable nonce set.
+		// In my case I have something like
+		//
+		// $nonce = base64_encode(random_bytes(20));
+		// $page->set('nonce', $nonce);
+		// 
+		// set in my _init.php file
+		// ... wonder if I should be using wireSettings instead.
+
 		if(wire()->page->get('nonce')) {
 			$nonce=' nonce="' . wire()->page->get('nonce') .'" ';
 		};
 
 		$ylt_script=(dirname(__FILE__)."/TextformatterLiteVideoEmbed.js");
 
+		// TODO: can we load the modules from a single bit of js?
+
 		if(file_exists($ylt_script)){
+			
 			$script='<script id="millco_lite_youtube" ' . $nonce . ' type="module">';
 				$script.=file_get_contents($ylt_script);
 			$script.='</script>';
