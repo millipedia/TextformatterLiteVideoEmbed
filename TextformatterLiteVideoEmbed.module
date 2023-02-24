@@ -7,6 +7,9 @@
  * 
  * https://github.com/justinribeiro/lite-youtube/
  * 
+ * https://github.com/slightlyoff/lite-vimeo
+ * 
+ * 
  * Which I got to via Paul Irish's 
  * https://github.com/paulirish/lite-youtube-embed
  * 
@@ -14,8 +17,6 @@
  * https://github.com/jacmaes/TextformatterLiteYouTubeEmbed)
  * some of which is probably still in this version.
  *
- * Note: At the moment you need to add the TextFormatterVideoLiteEmbed.js manually, 
- * I must work out how we can do that.
  * 
  */
 
@@ -25,7 +26,7 @@ class TextformatterLiteVideoEmbed extends Textformatter
 	{
 		return array(
 			'title'     => __('Lite Video Embed'),
-			'version'   => 001,
+			'version'   => 002,
 			'summary'   => __("Replaces plain video links in a text area or text input field with Justin Ribeiro's web component."),
 			'author'    => 'millipedia',
 		);
@@ -45,6 +46,12 @@ class TextformatterLiteVideoEmbed extends Textformatter
 	public function format(&$str)
 	{
 
+		$this->embedYoutube($str);
+		$this->embedVimeo($str);
+
+	}
+
+	public function embedYoutube(&$str){
 		// perform a quick check before moving on to the more expensive regex
 		if (
 			strpos($str, '://www.youtube.com/watch') === false
@@ -55,7 +62,6 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 		// TODO: - pull these params in from a config field.
 		$lyt_params = '&modestbranding=2&rel=0&enablejsapi=1';
-
 
 		// TODO: apply this both on html markup fields and single text fields.
 
@@ -78,8 +84,12 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 				// Find video ID
 				$video_id = $matches[2][$key];
-
-				$lyt_markup=$this->component_markup($line, $video_id, $lyt_params);
+				
+				$lyt_markup='';
+				$lyt_markup .= '<lite-youtube videoid="' . $video_id . '" params="' . $lyt_params . '" >';
+					// fallback for old browsers.
+					$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lyt_params . '">Watch on YouTube</a>';
+				$lyt_markup .= '</lite-youtube>';
 
 				$str = str_replace($line, $lyt_markup, $str);
 
@@ -90,27 +100,40 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 		// can we add our script to wire->config->scripts?
 		// .... no. we can't. We can try adding inline but we don't have access to our nonce... hmmm.
-		bd("adding sript");
 		$str=$this->add_you_tube_script($str);
 
 	}
 
-	/**
-	 * Wrap our video id in a lite-youtube tag.
-	 */
+	public function embedVimeo(&$str){
 
-	function component_markup($line, $video_id, $lyt_params){
+		if(strpos($str, '://vimeo.com/') === false) return;
 
-		$lyt_markup = '';
+		if(!preg_match_all('#<p>\s*(https?://vimeo.com/(\d+)).*?</p>#', $str, $matches)) return;
 
-		$lyt_markup .= '<lite-youtube videoid="' . $video_id . '" params="' . $lyt_params . '" >';
-			// fallback for old browsers.
-			$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lyt_params . '">Watch on YouTube</a>';
-		$lyt_markup .= '</lite-youtube>';
+		$lv_params ='';
 
-		return $lyt_markup;
+		foreach ($matches[0] as $key => $line) {
+
+			// Find video ID
+			$video_id = $matches[2][$key];
+
+			$lv_markup = '';
+
+			$lv_markup .= '<lite-vimeo videoid="' . $video_id . '" params="' . $lv_params . '" >';
+				// fallback for old browsers.
+				$lv_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lv_params . '">Watch on Vimeo</a>';
+			$lv_markup .= '</lite-vimeo>';
+
+			$str = str_replace($line, $lv_markup, $str);
+
+		}
+
+		// can we add our script to wire->config->scripts?
+		// .... no. we can't. We can try adding inline but we don't have access to our nonce... hmmm.
+		//$str=$this->add_you_tube_script($str);
 
 	}
+
 
 	/**
 	 * Add the lite youtube script inline, and
@@ -153,10 +176,17 @@ class TextformatterLiteVideoEmbed extends Textformatter
 		$ylt_script=(dirname(__FILE__)."/TextformatterLiteVideoEmbed.js");
 
 		// TODO: can we load the modules from a single bit of js?
+		// TODO: need to put this in a func.
+
+		$tflve_script_path=wire()->config->urls->siteModules . 'TextformatterLiteVideoEmbed';
+
+		//site/modules//lite-youtube.ts
 
 		if(file_exists($ylt_script)){
 			
-			$script='<script id="millco_lite_youtube" ' . $nonce . ' type="module">';
+			$script='<script id="millco_lite_youtube" ' . $nonce . '>';
+
+				$script.='var tflve_script_path="' . $tflve_script_path .'";';
 				$script.=file_get_contents($ylt_script);
 			$script.='</script>';
 

@@ -2,7 +2,6 @@
 // https://github.com/justinribeiro/lite-youtube 
 // v 1.40 when I grabbed it.
 
-
 export class LiteYTEmbed extends HTMLElement {
     constructor() {
         super();
@@ -112,43 +111,34 @@ export class LiteYTEmbed extends HTMLElement {
           z-index: 1;
         }
 
-        #playButton,
-        #playButton:before {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate3d(-50%, -50%, 0);
-          cursor: inherit;
-        }
-
-        #playButton {
-          width: 100px;
-          height: 100px;
-          background-color: #f0f0f0;
-          z-index: 1;
-          opacity: 1;
-          border-radius: 50%;
-          transition: var(--lyt-animation);
-          border: 8px solid #fff;
-          background:url('/site/assets/images/play_butt.svg') no-repeat 27px center;
-          background-color: #f0f0f0;
-        }
-
-
-        #playButton::before {
-            content: '';
-            border: 6px solid #c41c66;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            padding:2px;
-        }
-
         #frame:hover > #playButton::before {
             border-color: #3c3c3c;
             opacity: 1;
           }
 
+        #playButton {
+            width: 68px;
+            height: 48px;
+            background-color: transparent;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 68 48"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.63 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="red"/><path d="M45 24 27 14v20" fill="white"/></svg>');
+            z-index: 1;
+            border: 0;
+            border-radius: inherit;
+          }
+          #playButton:before {
+            content: '';
+            border-style: solid;
+            border-width: 11px 0 11px 19px;
+            border-color: transparent transparent transparent #fff;
+          }
+          #playButton,
+          #playButton:before {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate3d(-50%, -50%, 0);
+            cursor: inherit;
+          }
 
 
         /* Post-click styles */
