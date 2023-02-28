@@ -147,6 +147,7 @@ export class LiteYTEmbed extends HTMLElement {
         #frame.activated > #playButton {
           display: none;
         }
+        
       </style>
       <div id="frame">
         <picture>
