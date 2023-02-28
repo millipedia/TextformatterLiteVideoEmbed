@@ -4,9 +4,9 @@
  * ProcessWire Lite Video Embed Module
  *
  * This textformatter replaces youTube links with Justin Ribeiro's web component
- * 
  * https://github.com/justinribeiro/lite-youtube/
  * 
+ * and Vimeo links with
  * https://github.com/slightlyoff/lite-vimeo
  * 
  * 
@@ -27,7 +27,7 @@ class TextformatterLiteVideoEmbed extends Textformatter
 		return array(
 			'title'     => __('Lite Video Embed'),
 			'version'   => 002,
-			'summary'   => __("Replaces plain video links in a text area or text input field with Justin Ribeiro's web component."),
+			'summary'   => __("Replaces plain video links in a text area or text input field with a subdom web component that mimics YouTube or Vimeo but only loads the video when clicked."),
 			'author'    => 'millipedia',
 		);
 	}
@@ -100,6 +100,7 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 		// can we add our script to wire->config->scripts?
 		// .... no. we can't. We can try adding inline but we don't have access to our nonce... hmmm.
+		// wonder if this needs to be hooked somewhere?
 		$str=$this->add_you_tube_script($str);
 
 	}
@@ -128,10 +129,6 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 		}
 
-		// can we add our script to wire->config->scripts?
-		// .... no. we can't. We can try adding inline but we don't have access to our nonce... hmmm.
-		//$str=$this->add_you_tube_script($str);
-
 	}
 
 
@@ -143,18 +140,17 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 		$script='';
 
-		// have we done this before?
-		// $already_added=wire()->page->get('lyt_script_added');
+		// have we done this before in this content block?
 		if (strpos($str, 'millco_lite_youtube')){
 			return $str;
-			bd("found script");
 		}
 
+		// Was trying to set a global flag so we could see if we needed to add our code 
+		// $already_added=wire()->page->get('lyt_script_added');
 		// if(!$already_added){
 		// 	// and set a flag so we know we've already added it.
 		// 	wire()->page->set('lyt_script_added', 1);
 		// }
-
 		// if not then load the script into a string
 
 		// do we have a nonce to add to our scripts?
@@ -194,6 +190,13 @@ class TextformatterLiteVideoEmbed extends Textformatter
 		}else{
 			$script.='file not found';
 		}
+
+		// TODO: 
+		// We should apply custom properties for button styles at least.
+		// According to https://css-tricks.com/styling-a-web-component/
+		// we can use custom properties to target a shadow dom component.
+
+		
 
 		return $str.$script;
 	}
