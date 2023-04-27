@@ -68,17 +68,11 @@ class TextformatterLiteVideoEmbed extends Textformatter
 		// regex to find YouTube link in a paragraph
 		// TODO: do I have one for non-cookie domain somewhere? Sure I did... anyway we could use no-cookie in the markup as an option.
 
-
 		// do we know what field type this is? must do surely? If not can we just ass-u-me that if we have a paragraph tag it's
 		// a text area and if not it's a text input... hmmm.
 
-
 		$regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
-
-		// regex to find YT link in text field (rather than editor field).
-
-		//$regex = '#\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?#';
-
+		
 		if (preg_match_all($regex, $str, $matches) > 0) {
 
 			foreach ($matches[0] as $key => $line) {
@@ -91,15 +85,39 @@ class TextformatterLiteVideoEmbed extends Textformatter
 				// Find video ID
 				$video_id = $matches[2][$key];
 
-				$lyt_markup = '';
-				$lyt_markup .= '<lite-youtube videoid="' . $video_id . '" params="' . $lyt_params . '" >';
-				// fallback for old browsers.
-				$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lyt_params . '">Watch on YouTube</a>';
-				$lyt_markup .= '</lite-youtube>';
+				// get the markup
+				$lyt_markup=$this->get_lyt_markup($video_id, $lyt_params, $line);
 
+				// replace the captured text with the markup.
 				$str = str_replace($line, $lyt_markup, $str);
 			}
+		}else{
+
+			// See if we can do the same for a text field with just the URL in.
+			// regex to find YT link in text field (rather than editor field).
+			// $regex = '^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*';
+
+			// if we just have the url then see if we can parse it
+			if( $url_vars=parse_url( $str, PHP_URL_QUERY )){
+
+				parse_str( $url_vars, $varrray );
+				if(isset($varrray['v'])){
+
+						$video_id = $varrray['v'];
+						$line=$str;
+
+						// get the markup
+						$lyt_markup=$this->get_lyt_markup($video_id, $lyt_params, $line);
+		
+						// replace the captured text with the markup.
+						$str = str_replace($line, $lyt_markup, $str);
+				};
+
+			};
+
 		}
+
+		
 
 		// can we add our script to wire->config->scripts?
 		// .... no. we can't. We can try adding inline but we don't have access to our nonce... hmmm.
@@ -198,5 +216,22 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 
 		return $str . $script;
+	}
+
+	/**
+	 * Just write out the markup
+	 * @param string
+	 * @param string
+	 * @param string
+	 */
+	function get_lyt_markup($video_id, $lyt_params, $line){
+
+		$lyt_markup = '';
+		$lyt_markup .= '<lite-youtube videoid="' . $video_id . '" params="' . $lyt_params . '" >';
+		// fallback for old browsers.
+		$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lyt_params . '">Watch on YouTube</a>';
+		$lyt_markup .= '</lite-youtube>';
+
+		return $lyt_markup;
 	}
 }
