@@ -32,7 +32,7 @@ class TextformatterLiteVideoEmbed extends Textformatter
 		);
 	}
 
-	protected $ytl_added=0;
+	protected $ytl_added = 0;
 
 	/**
 	 * Format the input string
@@ -48,10 +48,10 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 		$this->embedYoutube($str);
 		$this->embedVimeo($str);
-
 	}
 
-	public function embedYoutube(&$str){
+	public function embedYoutube(&$str)
+	{
 		// perform a quick check before moving on to the more expensive regex
 		if (
 			strpos($str, '://www.youtube.com/watch') === false
@@ -68,10 +68,16 @@ class TextformatterLiteVideoEmbed extends Textformatter
 		// regex to find YouTube link in a paragraph
 		// TODO: do I have one for non-cookie domain somewhere? Sure I did... anyway we could use no-cookie in the markup as an option.
 
-		// $regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
+
+		// do we know what field type this is? must do surely? If not can we just ass-u-me that if we have a paragraph tag it's
+		// a text area and if not it's a text input... hmmm.
+
+
+		$regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
 
 		// regex to find YT link in text field (rather than editor field).
-		$regex = '#\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?#';
+
+		//$regex = '#\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?#';
 
 		if (preg_match_all($regex, $str, $matches) > 0) {
 
@@ -84,34 +90,31 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 				// Find video ID
 				$video_id = $matches[2][$key];
-				
-				$lyt_markup='';
+
+				$lyt_markup = '';
 				$lyt_markup .= '<lite-youtube videoid="' . $video_id . '" params="' . $lyt_params . '" >';
-					// fallback for old browsers.
-					$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lyt_params . '">Watch on YouTube</a>';
+				// fallback for old browsers.
+				$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lyt_params . '">Watch on YouTube</a>';
 				$lyt_markup .= '</lite-youtube>';
 
 				$str = str_replace($line, $lyt_markup, $str);
-
 			}
-
-		
 		}
 
 		// can we add our script to wire->config->scripts?
 		// .... no. we can't. We can try adding inline but we don't have access to our nonce... hmmm.
 		// wonder if this needs to be hooked somewhere?
-		$str=$this->add_you_tube_script($str);
-
+		$str = $this->add_you_tube_script($str);
 	}
 
-	public function embedVimeo(&$str){
+	public function embedVimeo(&$str)
+	{
 
-		if(strpos($str, '://vimeo.com/') === false) return;
+		if (strpos($str, '://vimeo.com/') === false) return;
 
-		if(!preg_match_all('#<p>\s*(https?://vimeo.com/(\d+)).*?</p>#', $str, $matches)) return;
+		if (!preg_match_all('#<p>\s*(https?://vimeo.com/(\d+)).*?</p>#', $str, $matches)) return;
 
-		$lv_params ='';
+		$lv_params = '';
 
 		foreach ($matches[0] as $key => $line) {
 
@@ -121,14 +124,12 @@ class TextformatterLiteVideoEmbed extends Textformatter
 			$lv_markup = '';
 
 			$lv_markup .= '<lite-vimeo videoid="' . $video_id . '" params="' . $lv_params . '" >';
-				// fallback for old browsers.
-				$lv_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lv_params . '">Watch on Vimeo</a>';
+			// fallback for old browsers.
+			$lv_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lv_params . '">Watch on Vimeo</a>';
 			$lv_markup .= '</lite-vimeo>';
 
 			$str = str_replace($line, $lv_markup, $str);
-
 		}
-
 	}
 
 
@@ -136,12 +137,13 @@ class TextformatterLiteVideoEmbed extends Textformatter
 	 * Add the lite youtube script inline, and
 	 * set a flag so we only load it once.
 	 */
-	function add_you_tube_script($str){
+	function add_you_tube_script($str)
+	{
 
-		$script='';
+		$script = '';
 
 		// have we done this before in this content block?
-		if (strpos($str, 'millco_lite_youtube')){
+		if (strpos($str, 'millco_lite_youtube')) {
 			return $str;
 		}
 
@@ -154,7 +156,7 @@ class TextformatterLiteVideoEmbed extends Textformatter
 		// if not then load the script into a string
 
 		// do we have a nonce to add to our scripts?
-		$nonce='';
+		$nonce = '';
 
 		// To use this you need to have a page variable nonce set.
 		// In my case I have something like
@@ -165,30 +167,28 @@ class TextformatterLiteVideoEmbed extends Textformatter
 		// set in my _init.php file
 		// ... wonder if I should be using wireSettings instead.
 
-		if(wire()->page->get('nonce')) {
-			$nonce=' nonce="' . wire()->page->get('nonce') .'" ';
+		if (wire()->page->get('nonce')) {
+			$nonce = ' nonce="' . wire()->page->get('nonce') . '" ';
 		};
 
-		$ylt_script=(dirname(__FILE__)."/TextformatterLiteVideoEmbed.js");
+		$ylt_script = (dirname(__FILE__) . "/TextformatterLiteVideoEmbed.js");
 
 		// TODO: can we load the modules from a single bit of js?
 		// TODO: need to put this in a func.
 
-		$tflve_script_path=wire()->config->urls->siteModules . 'TextformatterLiteVideoEmbed';
+		$tflve_script_path = wire()->config->urls->siteModules . 'TextformatterLiteVideoEmbed';
 
 		//site/modules//lite-youtube.ts
 
-		if(file_exists($ylt_script)){
-			
-			$script='<script id="millco_lite_youtube" ' . $nonce . '>';
+		if (file_exists($ylt_script)) {
 
-				$script.='var tflve_script_path="' . $tflve_script_path .'";';
-				$script.=file_get_contents($ylt_script);
-			$script.='</script>';
+			$script = '<script id="millco_lite_youtube" ' . $nonce . '>';
 
-
-		}else{
-			$script.='file not found';
+			$script .= 'var tflve_script_path="' . $tflve_script_path . '";';
+			$script .= file_get_contents($ylt_script);
+			$script .= '</script>';
+		} else {
+			$script .= 'file not found';
 		}
 
 		// TODO: 
@@ -196,8 +196,7 @@ class TextformatterLiteVideoEmbed extends Textformatter
 		// According to https://css-tricks.com/styling-a-web-component/
 		// we can use custom properties to target a shadow dom component.
 
-		
 
-		return $str.$script;
+		return $str . $script;
 	}
 }
