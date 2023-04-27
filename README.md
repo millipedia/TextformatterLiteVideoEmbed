@@ -7,6 +7,6 @@ At the moment it picks up YouTube links in textareas and plan text inputs, and V
 
 The code needs a lot of tidying but I do have it running on a couple of live sites and it hasn't destroyed them yet.
 
-I will get around to tidying it up and implementing config options etc when I get a change. Nag me if there's something you need urgently.
+I will get around to tidying it up and implementing config options etc when I get a chance. Nag me if there's something you need urgently.
 
 s.
