@@ -61,9 +61,8 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 
 		// TODO: - pull these params in from a config field.
+		// and also the nocookie flag (which we have on by default)
 		$lyt_params = '&modestbranding=2&rel=0&enablejsapi=1';
-
-		// TODO: apply this both on html markup fields and single text fields.
 
 		// regex to find YouTube link in a paragraph
 		// TODO: do I have one for non-cookie domain somewhere? Sure I did... anyway we could use no-cookie in the markup as an option.
@@ -91,6 +90,7 @@ class TextformatterLiteVideoEmbed extends Textformatter
 				// replace the captured text with the markup.
 				$str = str_replace($line, $lyt_markup, $str);
 			}
+
 		}else{
 
 			// See if we can do the same for a text field with just the URL in.
@@ -116,8 +116,6 @@ class TextformatterLiteVideoEmbed extends Textformatter
 			};
 
 		}
-
-		
 
 		// can we add our script to wire->config->scripts?
 		// .... no. we can't. We can try adding inline but we don't have access to our nonce... hmmm.
@@ -166,6 +164,9 @@ class TextformatterLiteVideoEmbed extends Textformatter
 		}
 
 		// Was trying to set a global flag so we could see if we needed to add our code 
+		// but it didn't work consistently. So now we check in javascript. Be nice to see if 
+		// we can make it work though just so we're not reloading code.
+
 		// $already_added=wire()->page->get('lyt_script_added');
 		// if(!$already_added){
 		// 	// and set a flag so we know we've already added it.
@@ -196,8 +197,6 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 		$tflve_script_path = wire()->config->urls->siteModules . 'TextformatterLiteVideoEmbed';
 
-		//site/modules//lite-youtube.ts
-
 		if (file_exists($ylt_script)) {
 
 			$script = '<script id="millco_lite_youtube" ' . $nonce . '>';
@@ -205,6 +204,7 @@ class TextformatterLiteVideoEmbed extends Textformatter
 			$script .= 'var tflve_script_path="' . $tflve_script_path . '";';
 			$script .= file_get_contents($ylt_script);
 			$script .= '</script>';
+
 		} else {
 			$script .= 'file not found';
 		}
@@ -219,15 +219,16 @@ class TextformatterLiteVideoEmbed extends Textformatter
 	}
 
 	/**
-	 * Just write out the markup
-	 * @param string
-	 * @param string
-	 * @param string
+	 * Write out the markup
+	 * @param string $video_id The YouTube id of the video
+	 * @param string $lyt_parmas Params to pass to youtube
+	 * @param string $line The url that we're going to replace with our markup.
+	 * 
 	 */
 	function get_lyt_markup($video_id, $lyt_params, $line){
 
 		$lyt_markup = '';
-		$lyt_markup .= '<lite-youtube videoid="' . $video_id . '" params="' . $lyt_params . '" >';
+		$lyt_markup .= '<lite-youtube videoid="' . $video_id . '" nocookie=1 params="' . $lyt_params . '" >';
 		// fallback for old browsers.
 		$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lyt_params . '">Watch on YouTube</a>';
 		$lyt_markup .= '</lite-youtube>';

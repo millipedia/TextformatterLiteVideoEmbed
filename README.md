@@ -3,6 +3,8 @@ Processwire Textformatter to replace Youtube and Vimeo links with lite embed pla
 
 It started life as a development of [jacmaes original text formatter](https://github.com/jacmaes/TextformatterLiteYouTubeEmbed) to include Vimeo lite.
 
+This version will write the required javascript inline, so no need to add the lite-youtube/vimeo scripts manually.
+
 At the moment it picks up YouTube links in textareas and plan text inputs, and Vimeo urls in textareas.
 
 The code needs a lot of tidying but I do have it running on a couple of live sites and it hasn't destroyed them yet.
