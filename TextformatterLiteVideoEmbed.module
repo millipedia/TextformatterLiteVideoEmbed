@@ -59,7 +59,6 @@ class TextformatterLiteVideoEmbed extends Textformatter
 			&& strpos($str, '://youtu.be/') === false
 		) return;
 
-
 		// TODO: - pull these params in from a config field.
 		// and also the nocookie flag (which we have on by default)
 		$lyt_params = '&modestbranding=2&rel=0&enablejsapi=1';
