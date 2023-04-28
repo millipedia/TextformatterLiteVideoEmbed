@@ -146,6 +146,8 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 			$str = str_replace($line, $lv_markup, $str);
 		}
+
+		$str = $this->add_you_tube_script($str);
 	}
 
 
@@ -192,8 +194,6 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 		$ylt_script = (dirname(__FILE__) . "/TextformatterLiteVideoEmbed.js");
 
-		// TODO: can we load the modules from a single bit of js?
-		// TODO: need to put this in a func.
 
 		$tflve_script_path = wire()->config->urls->siteModules . 'TextformatterLiteVideoEmbed';
 
@@ -201,8 +201,10 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 			$script = '<script id="millco_lite_youtube" ' . $nonce . '>';
 
-			$script .= 'var tflve_script_path="' . $tflve_script_path . '";';
+			$script .= 'var tflve_script_path="' . $tflve_script_path . '";' . PHP_EOL;
+			
 			$script .= file_get_contents($ylt_script);
+
 			$script .= '</script>';
 
 		} else {
