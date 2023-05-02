@@ -2,6 +2,10 @@
 
 /**
  * ProcessWire Lite Video Embed Module
+ * 
+ * stephen at millipedia.com
+ * 
+ * This module licensed under MIT
  *
  * This textformatter replaces youTube links with Justin Ribeiro's web component
  * https://github.com/justinribeiro/lite-youtube/
@@ -9,30 +13,89 @@
  * and Vimeo links with
  * https://github.com/slightlyoff/lite-vimeo
  * 
- * 
- * Which I got to via Paul Irish's 
+ *  * Which I got to via Paul Irish's 
  * https://github.com/paulirish/lite-youtube-embed
  * 
  * for which jacmaes built a similar thing
  * https://github.com/jacmaes/TextformatterLiteYouTubeEmbed)
  * some of which is probably still in this version.
- *
  * 
+ * There's some discussion of it at this (hijacked) thread.
+ * https://processwire.com/talk/topic/23528-lite-youtube-embed-module/
+ *
+ * MODULE CONFIGURATION PROPERTIES
+ * ===============================
+ * @property string $vimeo_colour Vimeo play button colour
+ * @property string $youtube_colour Vimeo play button colour
+ *
  */
 
-class TextformatterLiteVideoEmbed extends Textformatter
-{
+class TextformatterLiteVideoEmbed extends Textformatter implements Module, ConfigurableModule {
+
 	public static function getModuleInfo()
 	{
 		return array(
 			'title'     => __('Lite Video Embed'),
-			'version'   => 002,
+			'version'   => 003,
 			'summary'   => __("Replaces plain video links in a text area or text input field with a subdom web component that mimics YouTube or Vimeo but only loads the video when clicked."),
 			'author'    => 'millipedia',
 		);
 	}
 
 	protected $ytl_added = 0;
+
+		/**
+	 * Construct
+	 * 
+	 * This is often used to set default values for configuration settings
+	 * 
+	 */
+    public function __construct() {
+      
+		$this->set('vimeo_colour', '#62afed');
+		$this->set('youtube_colour', '#ff0000');
+  
+		parent::__construct();
+  
+	}
+
+	/**
+	 * Build module configuration inputs
+	 * 
+	 * If you prefer configuration can also be specified more declaratively with a PHP 
+	 * array in an external configuration file. See the /extras/Helloworld.config.php 
+	 * file included in this module’s files for an example. 
+	 * 
+	 * @param InputfieldWrapper $inputfields
+	 * 
+	 */
+	public function getModuleConfigInputfields(InputfieldWrapper $inputfields) {
+
+		$modules = $this->wire()->modules;
+
+		/** @var InputfieldText $f */
+		$f = $modules->get('InputfieldText');
+		$f->attr('name', 'vimeo_colour');
+		$f->label = $this->_('Vimeo button colour');
+		$f->description = $this->_('Hex colour for Vimeo play button placeholder');
+		$f->val($this->vimeo_colour);
+		$f->required = true;
+		$f->icon = 'vimeo';
+		$inputfields->add($f);
+
+		$f = $modules->get('InputfieldText');
+		$f->attr('name', 'youtube_colour');
+		$f->label = $this->_('Youtube button colour');
+		$f->description = $this->_('Hex colour for Youtube play button placeholder');
+		$f->val($this->youtube_colour);
+		$f->required = true;
+		$f->icon = 'youtube';
+		$inputfields->add($f);
+
+
+
+	}
+
 
 	/**
 	 * Format the input string
@@ -193,27 +256,27 @@ class TextformatterLiteVideoEmbed extends Textformatter
 
 		$ylt_script = (dirname(__FILE__) . "/TextformatterLiteVideoEmbed.js");
 
-
 		$tflve_script_path = wire()->config->urls->siteModules . 'TextformatterLiteVideoEmbed';
 
 		if (file_exists($ylt_script)) {
 
-			$script = '<script id="millco_lite_youtube" ' . $nonce . '>';
+			$script='';
 
-			$script .= 'var tflve_script_path="' . $tflve_script_path . '";' . PHP_EOL;
+			// Add custom properties for our button placeholders.
+			// Handily we can use custom properties to target a shadow dom component.
+			$script.='<style ' . $nonce . '> :root{ --millco-lvo-playbtn:' . $this->vimeo_colour . '; --millco-yt: ' . $this->youtube_colour . ' }</style>';
+
+			$script .= '<script class="millco_lite_youtube" ' . $nonce . '>';
+
+				$script .= 'var tflve_script_path="' . $tflve_script_path . '";' . PHP_EOL;
 			
-			$script .= file_get_contents($ylt_script);
+				$script .= file_get_contents($ylt_script);
 
 			$script .= '</script>';
 
 		} else {
 			$script .= 'file not found';
 		}
-
-		// TODO: 
-		// We should apply custom properties for button styles at least.
-		// According to https://css-tricks.com/styling-a-web-component/
-		// we can use custom properties to target a shadow dom component.
 
 
 		return $str . $script;

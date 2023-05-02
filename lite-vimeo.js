@@ -144,7 +144,7 @@ let LiteVimeoEmbed = /** @class */ (() => {
           border: 0;
         }
         #frame:hover .lvo-playbtn {
-          background-color: rgb(98, 175, 237);
+          background-color: var(--millco-lvo-playbtn);
           opacity: 1;
         }
         /* play button triangle */

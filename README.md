@@ -12,8 +12,6 @@ If you need to add a nonce to your script because you have a content security po
     $nonce = base64_encode(random_bytes(20));
     $page->set('nonce', $nonce);
 
-The code needs a lot of tidying but I do have it running on a couple of live sites and it hasn't destroyed them yet.
-
-I will get around to tidying it up and implementing config options etc when I get a chance. Nag me if there's something you need urgently.
+There are configuration settings to style the colours of the placeholder play buttons. 
 
 s.
