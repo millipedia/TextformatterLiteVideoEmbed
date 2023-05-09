@@ -1,4 +1,4 @@
-# TexformatterLiteVideoEmbed
+# TextformatterLiteVideoEmbed
 Processwire Textformatter to replace Youtube and Vimeo links with lite embed placeholders.
 
 It started life as a development of [jacmaes original text formatter](https://github.com/jacmaes/TextformatterLiteYouTubeEmbed) to include Vimeo lite.
