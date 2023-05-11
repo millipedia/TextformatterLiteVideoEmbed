@@ -287,14 +287,6 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 				
 			$script.="}" . PHP_EOL;
 				
-				
-				
-				
-				
-				
-				
-			//$script .= file_get_contents($ylt_script);
-
 			$script .= '</script>';
 
 
