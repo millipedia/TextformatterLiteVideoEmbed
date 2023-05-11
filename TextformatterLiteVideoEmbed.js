@@ -1,4 +1,10 @@
-
+// DEPRECATED
+//
+// Previously we used file read to get this into our content but now we just 
+// have it all in the module function.
+//
+// will delete this file... soon.
+// 
 // we set a flag to ensure we only instantiate the elements once
 // ... I feel there should be a better way...
 

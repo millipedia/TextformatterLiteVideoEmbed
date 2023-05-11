@@ -44,10 +44,10 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 	protected $ytl_added = 0;
 
-		/**
+	/**
 	 * Construct
 	 * 
-	 * This is often used to set default values for configuration settings
+	 * Set default values for configuration settings
 	 * 
 	 */
     public function __construct() {
@@ -91,8 +91,6 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		$f->required = true;
 		$f->icon = 'youtube';
 		$inputfields->add($f);
-
-
 
 	}
 
@@ -254,11 +252,9 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 			$nonce = ' nonce="' . wire()->page->get('nonce') . '" ';
 		};
 
-		$ylt_script = (dirname(__FILE__) . "/TextformatterLiteVideoEmbed.js");
 
 		$tflve_script_path = wire()->config->urls->siteModules . 'TextformatterLiteVideoEmbed';
 
-		if (file_exists($ylt_script)) {
 
 			$script='';
 
@@ -266,17 +262,40 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 			// Handily we can use custom properties to target a shadow dom component.
 			$script.='<style ' . $nonce . '> :root{ --millco-lvo-playbtn:' . $this->vimeo_colour . '; --millco-yt: ' . $this->youtube_colour . ' }</style>';
 
+			 
+			// We explictily write our js here now with full paths
+			// because import is fussy about dynamic paths.
+
 			$script .= '<script class="millco_lite_youtube" ' . $nonce . '>';
 
-				$script .= 'var tflve_script_path="' . $tflve_script_path . '";' . PHP_EOL;
-			
-				$script .= file_get_contents($ylt_script);
+				//$script .= 'var tflve_script_path="' . $tflve_script_path . '";' . PHP_EOL;
+				//$script.='console.log(typeof window.text_formatter_lite_video_embed_scripts_loaded);';
+
+			$script.="if (typeof window.text_formatter_lite_video_embed_scripts_loaded === 'undefined') {" . PHP_EOL;
+
+
+			$script.="async function loadYTLite() {" . PHP_EOL;
+		
+				$script.="const LiteYTEmbed = await import('$tflve_script_path/lite-youtube.js');" . PHP_EOL;
+			 	$script.="const LiteVimeoEmbed = await import('$tflve_script_path/lite-vimeo.js');" . PHP_EOL;
+						
+			$script.="}" . PHP_EOL;
+				
+			$script.="loadYTLite();" . PHP_EOL;
+				
+			$script.="window.text_formatter_lite_video_embed_scripts_loaded = 1;" . PHP_EOL;
+				
+			$script.="}" . PHP_EOL;
+				
+				
+				
+				
+				
+				
+				
+			//$script .= file_get_contents($ylt_script);
 
 			$script .= '</script>';
-
-		} else {
-			$script .= 'file not found';
-		}
 
 
 		return $str . $script;
