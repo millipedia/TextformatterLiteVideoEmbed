@@ -22,6 +22,9 @@
  * 
  * There's some discussion of it at this (hijacked) thread.
  * https://processwire.com/talk/topic/23528-lite-youtube-embed-module/
+ * 
+ * ..and now on this non-hijacked thread
+ * https://processwire.com/talk/topic/28820-textformatterlitevideoembed/
  *
  * MODULE CONFIGURATION PROPERTIES
  * ===============================
@@ -218,7 +221,7 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 					$line=$matches[0];
 					$video_id = $matches[1];
 					$lv_markup=$this->get_lv_markup($video_id, $lv_params, $line);
-					
+
 					$str = str_replace($line, $lv_markup, $str);
 					$str = $this->add_you_tube_script($str);
 

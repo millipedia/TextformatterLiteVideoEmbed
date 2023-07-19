@@ -12,6 +12,8 @@ If you need to add a nonce to your script because you have a content security po
     $nonce = base64_encode(random_bytes(20));
     $page->set('nonce', $nonce);
 
-There are configuration settings to style the colours of the placeholder play buttons. 
+There are configuration settings to style the colours of the placeholder play buttons.
+
+It finally has its own thread on the PW forums now at https://processwire.com/talk/topic/28820-textformatterlitevideoembed/
 
 s.
