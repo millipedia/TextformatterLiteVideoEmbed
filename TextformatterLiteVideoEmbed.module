@@ -190,7 +190,7 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 		if (!preg_match_all('#<p>\s*(https?://vimeo.com/(\d+)).*?</p>#', $str, $matches)) return;
 
-		$lv_params = '';
+		$lv_params = ''; //TODO : this currently hardcoded into the JS. Need to add parameters and parameters ....
 
 		foreach ($matches[0] as $key => $line) {
 
@@ -200,8 +200,11 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 			$lv_markup = '';
 
 			$lv_markup .= '<lite-vimeo videoid="' . $video_id . '" params="' . $lv_params . '" >';
-			// fallback for old browsers.
-			$lv_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lv_params . '">Watch on Vimeo</a>';
+				
+				// fallback for old browsers.
+				$fallback_url=$this->url_from_line($line);
+				$lv_markup .= '<a class="lite-youtube-fallback" href="' . $fallback_url . $lv_params . '">Watch on Vimeo</a>';
+
 			$lv_markup .= '</lite-vimeo>';
 
 			$str = str_replace($line, $lv_markup, $str);
@@ -304,10 +307,29 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 		$lyt_markup = '';
 		$lyt_markup .= '<lite-youtube videoid="' . $video_id . '" nocookie=1 params="' . $lyt_params . '" >';
+		
 		// fallback for old browsers.
-		$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $line . $lyt_params . '">Watch on YouTube</a>';
+		$fallback_url=$this->url_from_line($line);
+		$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $fallback_url . $lyt_params . '">Watch on YouTube</a>';
+
 		$lyt_markup .= '</lite-youtube>';
 
 		return $lyt_markup;
 	}
+
+	/**
+	 * Tidy the line we captured (and are replacing) to get the actual URL without tags.
+	 *  @param string $line The paragraph of text we're replacing.
+	 * 
+	 */
+
+	 function url_from_line($line){
+
+		$url=str_replace('<p>','',$line);
+		$url=str_replace('</p>','',$url);
+		$url=trim($url);
+
+		return $url;
+		
+	 }
 }
