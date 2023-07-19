@@ -5,7 +5,7 @@ It started life as a development of [jacmaes original text formatter](https://gi
 
 This version will write the required javascript inline, so no need to add the lite-youtube/vimeo scripts manually.
 
-At the moment it picks up YouTube links in textareas and plan text inputs, and Vimeo urls in textareas.
+It will detect YouTube and Vimeo links in both textareas and plain text inputs.
 
 If you need to add a nonce to your script because you have a content security policy that requires it (which of course you do) you can set a page variable in _init.php or wherever eg.
 
