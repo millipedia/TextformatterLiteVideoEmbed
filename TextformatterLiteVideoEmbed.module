@@ -188,29 +188,49 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 		if (strpos($str, '://vimeo.com/') === false) return;
 
-		if (!preg_match_all('#<p>\s*(https?://vimeo.com/(\d+)).*?</p>#', $str, $matches)) return;
-
+				
 		$lv_params = ''; //TODO : this currently hardcoded into the JS. Need to add parameters and parameters ....
 
-		foreach ($matches[0] as $key => $line) {
+		$regex = '#<p>\s*(https?://vimeo.com/(\d+)).*?</p>#';
 
-			// Find video ID
-			$video_id = $matches[2][$key];
+		// get all matches in textarea.
+		if (preg_match_all($regex, $str, $matches) > 0) {
 
-			$lv_markup = '';
+			foreach ($matches[0] as $key => $line) {
 
-			$lv_markup .= '<lite-vimeo videoid="' . $video_id . '" params="' . $lv_params . '" >';
+				// Find video ID
+				$video_id = $matches[2][$key];
+
+				$lv_markup=$this->get_lv_markup($video_id, $lv_params, $line);
+
+				$str = str_replace($line, $lv_markup, $str);
+
+				$str = $this->add_you_tube_script($str);
+			}
+	
+		}else{
+
+			// check for match in text field
+			// this should just be the entire content of the field.
+
+			if(preg_match('/(?:http:|https:|)\/\/(?:player.|www.)?vimeo\.com\/(?:video\/|embed\/|watch\?\S*v=|v\/)?(\d*)/', $str, $matches)){
 				
-				// fallback for old browsers.
-				$fallback_url=$this->url_from_line($line);
-				$lv_markup .= '<a class="lite-youtube-fallback" href="' . $fallback_url . $lv_params . '">Watch on Vimeo</a>';
+					$line=$matches[0];
+					$video_id = $matches[1];
+					$lv_markup=$this->get_lv_markup($video_id, $lv_params, $line);
+					
+					$str = str_replace($line, $lv_markup, $str);
+					$str = $this->add_you_tube_script($str);
 
-			$lv_markup .= '</lite-vimeo>';
+			}else{
+			
+				// bd("no matches");
 
-			$str = str_replace($line, $lv_markup, $str);
+			}
+
 		}
 
-		$str = $this->add_you_tube_script($str);
+
 	}
 
 
@@ -297,7 +317,7 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 	}
 
 	/**
-	 * Write out the markup
+	 * Write out the markup for a youtube-lite tag.
 	 * @param string $video_id The YouTube id of the video
 	 * @param string $lyt_parmas Params to pass to youtube
 	 * @param string $line The url that we're going to replace with our markup.
@@ -315,6 +335,26 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		$lyt_markup .= '</lite-youtube>';
 
 		return $lyt_markup;
+	}
+
+	/**
+	 * Write out the markup for a vimeo-lite tag.
+	 * @param string $video_id The YouTube id of the video
+	 * @param string $lv parmas Params to pass to youtube
+	 * @param string $line The url that we're going to replace with our markup.
+	 * 
+	 */
+	function get_lv_markup($video_id, $lv_params, $line){
+
+		$lv_markup = '';
+		$lv_markup .= '<lite-vimeo videoid="' . $video_id . '" params="' . $lv_params . '" >';
+					
+			// fallback for old browsers.
+			$fallback_url=$this->url_from_line($line);
+			$lv_markup .= '<a class="lite-youtube-fallback" href="' . $fallback_url . $lv_params . '">Watch on Vimeo</a>';
+
+		$lv_markup .= '</lite-vimeo>';
+		return $lv_markup;
 	}
 
 	/**
