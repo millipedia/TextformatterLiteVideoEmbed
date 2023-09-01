@@ -329,7 +329,7 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 	function get_lyt_markup($video_id, $lyt_params, $line){
 
 		$lyt_markup = '';
-		$lyt_markup .= '<lite-youtube videoid="' . $video_id . '" nocookie=1 params="' . $lyt_params . '" >';
+		$lyt_markup .= '<lite-youtube class="lv_element lv_element_vimeo" videoid="' . $video_id . '" nocookie=1 params="' . $lyt_params . '" >';
 		
 		// fallback for old browsers.
 		$fallback_url=$this->url_from_line($line);
@@ -350,7 +350,7 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 	function get_lv_markup($video_id, $lv_params, $line){
 
 		$lv_markup = '';
-		$lv_markup .= '<lite-vimeo videoid="' . $video_id . '" params="' . $lv_params . '" >';
+		$lv_markup .= '<lite-vimeo class="lv_element lv_element_vimeo" videoid="' . $video_id . '" params="' . $lv_params . '" >';
 					
 			// fallback for old browsers.
 			$fallback_url=$this->url_from_line($line);
