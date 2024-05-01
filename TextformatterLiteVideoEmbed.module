@@ -133,7 +133,9 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		// do we know what field type this is? must do surely? If not can we just ass-u-me that if we have a paragraph tag it's
 		// a text area and if not it's a text input... hmmm.
 
-		$regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
+		// $regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
+
+		$regex = '#<p>\s*(?:https?:)?(?:\/\/)?(?:youtu\.be\/|(?:www\.|m\.)?youtube\.com\/(?:watch|v|embed)(?:\.php)?(?:\?.*v=|\/))([a-zA-Z0-9\_-]{7,15})(?:[\?&][a-zA-Z0-9\_-]+=[a-zA-Z0-9\_-]+)*(?:[&\/\#].*)?.*?</p>#';
 		
 		if (preg_match_all($regex, $str, $matches) > 0) {
 
@@ -145,7 +147,7 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 				// $video_id = $match[1];
 
 				// Find video ID
-				$video_id = $matches[2][$key];
+				$video_id = $matches[1][$key];
 
 				// get the markup
 				$lyt_markup=$this->get_lyt_markup($video_id, $lyt_params, $line);
