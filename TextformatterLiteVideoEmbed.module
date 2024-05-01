@@ -266,20 +266,27 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 		// do we have a nonce to add to our scripts?
 		$nonce = '';
-
+		
 		// To use this you need to have a page variable nonce set.
-		// In my case I have something like
+		// In my case I use the MillcoUtils module
+		// which generates a nonce to use by calling $page->nonce
+		//
+		// Or you can set a page variable in you _init.php file 
+		// (or wherever is suitable) eg
 		//
 		// $nonce = base64_encode(random_bytes(20));
 		// $page->set('nonce', $nonce);
 		// 
-		// set in my _init.php file
-		// ... wonder if I should be using wireSettings instead.
 
-		if (wire()->page->get('nonce')) {
-			$nonce = ' nonce="' . wire()->page->get('nonce') . '" ';
+		if(wire('page')->nonce) {
+			$nonce=wire('page')->nonce;
+		}elseif (wire('page')->get('nonce')) {
+			$nonce=wire('page')->get('nonce');
+		}
+
+		if ($nonce!=='') {
+			$nonce = ' nonce="' . $nonce . '" ';
 		};
-
 
 		$tflve_script_path = wire()->config->urls->siteModules . 'TextformatterLiteVideoEmbed';
 
