@@ -28,12 +28,13 @@
  *
  * MODULE CONFIGURATION PROPERTIES
  * ===============================
- * @property string $vimeo_colour Vimeo play button colour
- * @property string $youtube_colour Vimeo play button colour
+ * @property String $vimeo_colour Vimeo play button colour
+ * @property String $youtube_colour Vimeo play button colour
  *
  */
 
-class TextformatterLiteVideoEmbed extends Textformatter implements Module, ConfigurableModule {
+class TextformatterLiteVideoEmbed extends Textformatter implements Module, ConfigurableModule
+{
 
 	public static function getModuleInfo()
 	{
@@ -53,13 +54,13 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 	 * Set default values for configuration settings
 	 * 
 	 */
-    public function __construct() {
-      
+	public function __construct()
+	{
+
 		$this->set('vimeo_colour', '#62afed');
 		$this->set('youtube_colour', '#ff0000');
-  
+
 		parent::__construct();
-  
 	}
 
 	/**
@@ -72,7 +73,8 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 	 * @param InputfieldWrapper $inputfields
 	 * 
 	 */
-	public function getModuleConfigInputfields(InputfieldWrapper $inputfields) {
+	public function getModuleConfigInputfields(InputfieldWrapper $inputfields)
+	{
 
 		$modules = $this->wire()->modules;
 
@@ -94,14 +96,13 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		$f->required = true;
 		$f->icon = 'youtube';
 		$inputfields->add($f);
-
 	}
 
 
 	/**
 	 * Format the input string
 	 *
-	 * @param string $str The block of text to parse
+	 * @param String $str The block of text to parse
 	 *
 	 * The incoming string is replaced with the formatted version of itself.
 	 **/
@@ -123,9 +124,7 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 			&& strpos($str, '://youtu.be/') === false
 		) return;
 
-		// TODO: - pull these params in from a config field.
-		// and also the nocookie flag (which we have on by default)
-		$lyt_params = '&modestbranding=2&rel=0&enablejsapi=1';
+
 
 		// regex to find YouTube link in a paragraph
 		// TODO: do I have one for non-cookie domain somewhere? Sure I did... anyway we could use no-cookie in the markup as an option.
@@ -134,7 +133,7 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		// a text area and if not it's a text input... hmmm.
 
 		$regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
-		
+
 		if (preg_match_all($regex, $str, $matches) > 0) {
 
 			foreach ($matches[0] as $key => $line) {
@@ -144,40 +143,84 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 				// preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/// )([^"&?/ ]{11})%i', $line, $match);
 				// $video_id = $match[1];
 
+				// We now have an array of parameters we pass to 
+				// lite you tube.
+
+				$lyt_params = [];
+
+				// TODO: - pull in some of these params from a config field.
+				// and also the nocookie flag (which we have on by default)
+				$lyt_params['params'] = '&modestbranding=2&rel=0&enablejsapi=1';
+
+				$lyt_params['videoStartAt'] = 0; // lyt uses a separate start value.
+				$lyt_params['fallback_params'] = '';
+				$lyt_params['original_params'] = '';
+
+
 				// Find video ID
 				$video_id = $matches[2][$key];
 
+				// include any other parameters we've passed
+				if ($matches[3]) {
+
+					$original_parameters = $matches[3][$key];
+
+					$lyt_params['fallback_params'] = $original_parameters;
+
+					// lite you tube has separate params for videoStart
+					// so pull that out separately
+
+					if (preg_match('/start=(.[0-9])/', $original_parameters, $start_matches)) {
+
+						bd("got a start match");
+
+						$lyt_params['videoStartAt'] = $start_matches[1];
+
+						// and remove it from original params.
+						$original_parameters = $matches[3][$key];
+						$original_parameters = str_replace('&' . $start_matches[0], '', $original_parameters);
+					}
+
+					$lyt_params['original_params'] = $original_parameters;
+				}else{
+					$lyt_params['videoStartAt'] = 0;
+				}
+
 				// get the markup
-				$lyt_markup=$this->get_lyt_markup($video_id, $lyt_params, $line);
+				$lyt_markup = $this->get_lyt_markup($video_id, $lyt_params, $line);
 
 				// replace the captured text with the markup.
 				$str = str_replace($line, $lyt_markup, $str);
 			}
-
-		}else{
+		} else {
 
 			// See if we can do the same for a text field with just the URL in.
 			// regex to find YT link in text field (rather than editor field).
 			// $regex = '^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*';
 
 			// if we just have the url then see if we can parse it
-			if( $url_vars=parse_url( $str, PHP_URL_QUERY )){
+			if ($url_vars = parse_url($str, PHP_URL_QUERY)) {
 
-				parse_str( $url_vars, $varrray );
-				if(isset($varrray['v'])){
+				parse_str($url_vars, $varrray);
+				if (isset($varrray['v'])) {
 
-						$video_id = $varrray['v'];
-						$line=$str;
+					$video_id = $varrray['v'];
 
-						// get the markup
-						$lyt_markup=$this->get_lyt_markup($video_id, $lyt_params, $line);
-		
-						// replace the captured text with the markup.
-						$str = str_replace($line, $lyt_markup, $str);
+					if (array_key_exists('start', $varrray)) {
+						$lyt_params['videoStartAt'] = $varrray['start'];
+					}else{
+						$lyt_params['videoStartAt'] = 0;
+					}
+
+					$line = $str;
+
+					// get the markup
+					$lyt_markup = $this->get_lyt_markup($video_id, $lyt_params, $line);
+
+					// replace the captured text with the markup.
+					$str = str_replace($line, $lyt_markup, $str);
 				};
-
 			};
-
 		}
 
 		// can we add our script to wire->config->scripts?
@@ -191,7 +234,7 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 		if (strpos($str, '://vimeo.com/') === false) return;
 
-				
+
 		$lv_params = ''; //TODO : this currently hardcoded into the JS. Need to add parameters and parameters ....
 
 		$regex = '#<p>\s*(https?://vimeo.com/(\d+)).*?</p>#';
@@ -204,36 +247,31 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 				// Find video ID
 				$video_id = $matches[2][$key];
 
-				$lv_markup=$this->get_lv_markup($video_id, $lv_params, $line);
+				$lv_markup = $this->get_lv_markup($video_id, $lv_params, $line);
 
 				$str = str_replace($line, $lv_markup, $str);
 
 				$str = $this->add_you_tube_script($str);
 			}
-	
-		}else{
+		} else {
 
 			// check for match in text field
 			// this should just be the entire content of the field.
 
-			if(preg_match('/(?:http:|https:|)\/\/(?:player.|www.)?vimeo\.com\/(?:video\/|embed\/|watch\?\S*v=|v\/)?(\d*)/', $str, $matches)){
-				
-					$line=$matches[0];
-					$video_id = $matches[1];
-					$lv_markup=$this->get_lv_markup($video_id, $lv_params, $line);
+			if (preg_match('/(?:http:|https:|)\/\/(?:player.|www.)?vimeo\.com\/(?:video\/|embed\/|watch\?\S*v=|v\/)?(\d*)/', $str, $matches)) {
 
-					$str = str_replace($line, $lv_markup, $str);
-					$str = $this->add_you_tube_script($str);
+				$line = $matches[0];
+				$video_id = $matches[1];
+				$lv_markup = $this->get_lv_markup($video_id, $lv_params, $line);
 
-			}else{
-			
+				$str = str_replace($line, $lv_markup, $str);
+				$str = $this->add_you_tube_script($str);
+			} else {
+
 				// bd("no matches");
 
 			}
-
 		}
-
-
 	}
 
 
@@ -264,7 +302,7 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 		// do we have a nonce to add to our scripts?
 		$nonce = '';
-		
+
 		// To use this you need to have a page variable nonce set.
 		// In my case I use the MillcoUtils module
 		// which generates a nonce to use by calling $page->nonce
@@ -276,51 +314,51 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		// $page->set('nonce', $nonce);
 		// 
 
-		if(wire('page')->nonce) {
-			$nonce=wire('page')->nonce;
-		}elseif (wire('page')->get('nonce')) {
-			$nonce=wire('page')->get('nonce');
+		if (wire('page')->nonce) {
+			$nonce = wire('page')->nonce;
+		} elseif (wire('page')->get('nonce')) {
+			$nonce = wire('page')->get('nonce');
 		}
 
-		if ($nonce!=='') {
+		if ($nonce !== '') {
 			$nonce = ' nonce="' . $nonce . '" ';
 		};
 
 		$tflve_script_path = wire()->config->urls->siteModules . 'TextformatterLiteVideoEmbed';
 
 
-			$script='';
+		$script = '';
 
-			// Add custom properties for our button placeholders.
-			// Handily we can use custom properties to target a shadow dom component.
-			$script.='<style ' . $nonce . '> :root{ --millco-lvo-playbtn:' . $this->vimeo_colour . '; --millco-yt: ' . $this->youtube_colour . ' }</style>';
-
-			 
-			// We explictily write our js here now with full paths
-			// because import is fussy about dynamic paths.
-
-			$script .= '<script class="millco_lite_youtube" ' . $nonce . '>';
-
-				//$script .= 'var tflve_script_path="' . $tflve_script_path . '";' . PHP_EOL;
-				//$script.='console.log(typeof window.text_formatter_lite_video_embed_scripts_loaded);';
-
-			$script.="if (typeof window.text_formatter_lite_video_embed_scripts_loaded === 'undefined') {" . PHP_EOL;
+		// Add custom properties for our button placeholders.
+		// Handily we can use custom properties to target a shadow dom component.
+		$script .= '<style ' . $nonce . '> :root{ --millco-lvo-playbtn:' . $this->vimeo_colour . '; --millco-yt: ' . $this->youtube_colour . ' }</style>';
 
 
-			$script.="async function loadYTLite() {" . PHP_EOL;
-		
-				$script.="const LiteYTEmbed = await import('$tflve_script_path/lite-youtube.js');" . PHP_EOL;
-			 	$script.="const LiteVimeoEmbed = await import('$tflve_script_path/lite-vimeo.js');" . PHP_EOL;
-						
-			$script.="}" . PHP_EOL;
-				
-			$script.="loadYTLite();" . PHP_EOL;
-				
-			$script.="window.text_formatter_lite_video_embed_scripts_loaded = 1;" . PHP_EOL;
-				
-			$script.="}" . PHP_EOL;
-				
-			$script .= '</script>';
+		// We explictily write our js here now with full paths
+		// because import is fussy about dynamic paths.
+
+		$script .= '<script class="millco_lite_youtube" ' . $nonce . '>';
+
+		//$script .= 'var tflve_script_path="' . $tflve_script_path . '";' . PHP_EOL;
+		//$script.='console.log(typeof window.text_formatter_lite_video_embed_scripts_loaded);';
+
+		$script .= "if (typeof window.text_formatter_lite_video_embed_scripts_loaded === 'undefined') {" . PHP_EOL;
+
+
+		$script .= "async function loadYTLite() {" . PHP_EOL;
+
+		$script .= "const LiteYTEmbed = await import('$tflve_script_path/lite-youtube.js');" . PHP_EOL;
+		$script .= "const LiteVimeoEmbed = await import('$tflve_script_path/lite-vimeo.js');" . PHP_EOL;
+
+		$script .= "}" . PHP_EOL;
+
+		$script .= "loadYTLite();" . PHP_EOL;
+
+		$script .= "window.text_formatter_lite_video_embed_scripts_loaded = 1;" . PHP_EOL;
+
+		$script .= "}" . PHP_EOL;
+
+		$script .= '</script>';
 
 
 		return $str . $script;
@@ -328,19 +366,28 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 	/**
 	 * Write out the markup for a youtube-lite tag.
-	 * @param string $video_id The YouTube id of the video
-	 * @param string $lyt_parmas Params to pass to youtube
-	 * @param string $line The url that we're going to replace with our markup.
+	 * @param String $video_id The YouTube id of the video
+	 * @param Array $lyt_parmas and array of parameters
+	 * @param String $line The url that we're going to replace with our markup.
 	 * 
 	 */
-	function get_lyt_markup($video_id, $lyt_params, $line){
+	function get_lyt_markup($video_id, $lyt_params, $line)
+	{
 
 		$lyt_markup = '';
-		$lyt_markup .= '<lite-youtube class="lv_element lv_element_vimeo" videoid="' . $video_id . '" nocookie=1 params="' . $lyt_params . '" >';
-		
+
+		$lyt_markup .= '<lite-youtube class="lv_element lv_element_vimeo" videoid="' . $video_id . '" nocookie=1 ';
+		$lyt_markup .= 'params="' . $lyt_params['params'] . '"';
+
+		if ($lyt_params['videoStartAt']) {
+			$lyt_markup .= ' videoStartAt="' . $lyt_params['videoStartAt'] . '"';
+		}
+
+		$lyt_markup .= '>';
+
 		// fallback for old browsers.
-		$fallback_url=$this->url_from_line($line);
-		$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $fallback_url . $lyt_params . '">Watch on YouTube</a>';
+		$fallback_url = $this->url_from_line($line);
+		$lyt_markup .= '<a class="lite-youtube-fallback" href="' . $fallback_url . $lyt_params['fallback_params'] . '">Watch on YouTube</a>';
 
 		$lyt_markup .= '</lite-youtube>';
 
@@ -349,19 +396,21 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 	/**
 	 * Write out the markup for a vimeo-lite tag.
-	 * @param string $video_id The YouTube id of the video
-	 * @param string $lv parmas Params to pass to youtube
-	 * @param string $line The url that we're going to replace with our markup.
+	 * @param String $video_id The YouTube id of the video
+	 * @param String $lv parmas Params to pass to youtube
+	 * @param String $line The url that we're going to replace with our markup.
 	 * 
 	 */
-	function get_lv_markup($video_id, $lv_params, $line){
+	function get_lv_markup($video_id, $lv_params, $line)
+	{
 
 		$lv_markup = '';
+
 		$lv_markup .= '<lite-vimeo class="lv_element lv_element_vimeo" videoid="' . $video_id . '" params="' . $lv_params . '" >';
-					
-			// fallback for old browsers.
-			$fallback_url=$this->url_from_line($line);
-			$lv_markup .= '<a class="lite-youtube-fallback" href="' . $fallback_url . $lv_params . '">Watch on Vimeo</a>';
+
+		// fallback for old browsers.
+		$fallback_url = $this->url_from_line($line);
+		$lv_markup .= '<a class="lite-youtube-fallback" href="' . $fallback_url . $lv_params . '">Watch on Vimeo</a>';
 
 		$lv_markup .= '</lite-vimeo>';
 		return $lv_markup;
@@ -373,13 +422,13 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 	 * 
 	 */
 
-	 function url_from_line($line){
+	function url_from_line($line)
+	{
 
-		$url=str_replace('<p>','',$line);
-		$url=str_replace('</p>','',$url);
-		$url=trim($url);
+		$url = str_replace('<p>', '', $line);
+		$url = str_replace('</p>', '', $url);
+		$url = trim($url);
 
 		return $url;
-		
-	 }
+	}
 }
