@@ -132,8 +132,10 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		// do we know what field type this is? must do surely? If not can we just ass-u-me that if we have a paragraph tag it's
 		// a text area and if not it's a text input... hmmm.
 
-		$regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
+		// $regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
 
+		$regex = '#<p>\s*(?:https?:)?(?:\/\/)?(?:youtu\.be\/|(?:www\.|m\.)?youtube\.com\/(?:watch|v|embed)(?:\.php)?(?:\?.*v=|\/))([a-zA-Z0-9\_-]{7,15})(?:[\?&][a-zA-Z0-9\_-]+=[a-zA-Z0-9\_-]+)*(?:[&\/\#].*)?.*?</p>#';
+		
 		if (preg_match_all($regex, $str, $matches) > 0) {
 
 			foreach ($matches[0] as $key => $line) {
@@ -158,33 +160,7 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 
 				// Find video ID
-				$video_id = $matches[2][$key];
-
-				// include any other parameters we've passed
-				if ($matches[3]) {
-
-					$original_parameters = $matches[3][$key];
-
-					$lyt_params['fallback_params'] = $original_parameters;
-
-					// lite you tube has separate params for videoStart
-					// so pull that out separately
-
-					if (preg_match('/start=(.[0-9])/', $original_parameters, $start_matches)) {
-
-						bd("got a start match");
-
-						$lyt_params['videoStartAt'] = $start_matches[1];
-
-						// and remove it from original params.
-						$original_parameters = $matches[3][$key];
-						$original_parameters = str_replace('&' . $start_matches[0], '', $original_parameters);
-					}
-
-					$lyt_params['original_params'] = $original_parameters;
-				}else{
-					$lyt_params['videoStartAt'] = 0;
-				}
+				$video_id = $matches[1][$key];
 
 				// get the markup
 				$lyt_markup = $this->get_lyt_markup($video_id, $lyt_params, $line);
