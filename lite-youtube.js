@@ -2,6 +2,8 @@
 // https://github.com/justinribeiro/lite-youtube 
 // v 1.50 when I grabbed it from
 // https://cdn.jsdelivr.net/npm/@justinribeiro/lite-youtube@1.5.0/lite-youtube.js
+// It's since be updated to handle loading thumbail poster images so don't just swap a newer
+// version in. s.
 
 export class LiteYTEmbed extends HTMLElement {
     constructor() {
@@ -229,8 +231,19 @@ export class LiteYTEmbed extends HTMLElement {
         }
     }
     initImagePlaceholder() {
-        const posterUrlWebp = `https://i.ytimg.com/vi_webp/${this.videoId}/${this.posterQuality}.webp`;
-        const posterUrlJpeg = `https://i.ytimg.com/vi/${this.videoId}/${this.posterQuality}.jpg`;
+
+		var posterUrlWebp = `https://i.ytimg.com/vi_webp/${this.videoId}/${this.posterQuality}.webp`;
+		var posterUrlJpeg = `https://i.ytimg.com/vi/${this.videoId}/${this.posterQuality}.jpg`;
+
+		// 241008 Stephen
+		// if we have a data-thumbnail value then use that instead of the YT posters.
+		// at the mo we only support jpeg.
+
+		if(this.dataset.thumbnail){
+			posterUrlWebp = ``;
+			posterUrlJpeg = this.dataset.thumbnail;
+		}
+
         this.domRefImg.fallback.loading = this.posterLoading;
         this.domRefImg.webp.srcset = posterUrlWebp;
         this.domRefImg.jpeg.srcset = posterUrlJpeg;

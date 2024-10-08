@@ -24,4 +24,3 @@ if (typeof window.text_formatter_lite_video_embed_scripts_loaded === 'undefined'
 
 }
 
-

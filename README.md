@@ -14,6 +14,11 @@ If you need to add a nonce to your script because you have a content security po
 
 There are configuration settings to style the colours of the placeholder play buttons.
 
+For YouTube at least, you can pass an image location using a *thumbnail* parameter (jpeg only at the mo) then we'll use that instead of pulling the thumbail from YouTube.
+You can pass a start value in seconds in the same way:
+
+	https://www.youtube.com/watch?v=wk_Dh0XE-bU&thumbnail=/site/assets/files/5865/cooper.jpg&start=10
+
 It finally has its own thread on the PW forums now at https://processwire.com/talk/topic/28820-textformatterlitevideoembed/
 
 s.

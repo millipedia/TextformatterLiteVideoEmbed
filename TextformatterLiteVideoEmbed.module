@@ -125,7 +125,6 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		) return;
 
 
-
 		// regex to find YouTube link in a paragraph
 		// TODO: do I have one for non-cookie domain somewhere? Sure I did... anyway we could use no-cookie in the markup as an option.
 
@@ -143,48 +142,12 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 				// preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/// )([^"&?/ ]{11})%i', $line, $match);
 				// $video_id = $match[1];
 
-				// We now have an array of parameters we pass to 
-				// lite you tube.
 
-				$lyt_params = [];
-
-				// TODO: - pull in some of these params from a config field.
-				// and also the nocookie flag (which we have on by default)
-				$lyt_params['params'] = '&modestbranding=2&rel=0&enablejsapi=1';
-
-				$lyt_params['videoStartAt'] = 0; // lyt uses a separate start value.
-				$lyt_params['fallback_params'] = '';
-				$lyt_params['original_params'] = '';
-
+				$lyt_params=$this->get_lyt_parameters($line);
 
 				// Find video ID
 				$video_id = $matches[2][$key];
 
-				// include any other parameters we've passed
-				if ($matches[3]) {
-
-					$original_parameters = $matches[3][$key];
-
-					$lyt_params['fallback_params'] = $original_parameters;
-
-					// lite you tube has separate params for videoStart
-					// so pull that out separately
-
-					if (preg_match('/start=(.[0-9])/', $original_parameters, $start_matches)) {
-
-						bd("got a start match");
-
-						$lyt_params['videoStartAt'] = $start_matches[1];
-
-						// and remove it from original params.
-						$original_parameters = $matches[3][$key];
-						$original_parameters = str_replace('&' . $start_matches[0], '', $original_parameters);
-					}
-
-					$lyt_params['original_params'] = $original_parameters;
-				}else{
-					$lyt_params['videoStartAt'] = 0;
-				}
 
 				// get the markup
 				$lyt_markup = $this->get_lyt_markup($video_id, $lyt_params, $line);
@@ -202,15 +165,12 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 			if ($url_vars = parse_url($str, PHP_URL_QUERY)) {
 
 				parse_str($url_vars, $varrray);
-				if (isset($varrray['v'])) {
+
+				$lyt_params=$this->get_lyt_parameters($str);
+
+				if (isset($varrray['v'])) { // TODO: need to deal with URLS that are in the watch format and don't have a v= paramter
 
 					$video_id = $varrray['v'];
-
-					if (array_key_exists('start', $varrray)) {
-						$lyt_params['videoStartAt'] = $varrray['start'];
-					}else{
-						$lyt_params['videoStartAt'] = 0;
-					}
 
 					$line = $str;
 
@@ -227,6 +187,52 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		// .... no. we can't. We can try adding inline but we don't have access to our nonce... hmmm.
 		// wonder if this needs to be hooked somewhere?
 		$str = $this->add_you_tube_script($str);
+	}
+
+
+	/**
+	 * Given a match for a YoutTube url
+	 * lets try and dig out some paramters
+	 */
+
+	public function get_lyt_parameters($yt_url)
+	{
+
+		// We now have an array of parameters we pass to 
+		// lite you tube.
+
+		$lyt_params = [];
+
+		// TODO: - pull in some of these params from a config field.
+		// and also the nocookie flag (which we have on by default)
+		$lyt_params['params'] = '&modestbranding=2&rel=0&enablejsapi=1';
+
+		$lyt_params['videoStartAt'] = 0; // lyt uses a separate start value.
+		$lyt_params['fallback_params'] = '';
+		$lyt_params['original_params'] = '';
+
+		//	let's just grab the url to use in parse_string rather than regexing for each parameter.
+		$yt_url = strip_tags($yt_url);
+		$yt_url = html_entity_decode($yt_url);
+
+		$qparams = [];
+		parse_str($yt_url, $qparams);
+
+		if (array_key_exists('thumbnail', $qparams)) {
+
+			$lyt_params['thumbnail'] = $qparams['thumbnail']; // Guess we should saniize this...
+
+		} else {
+			$lyt_params['thumbnail'] = '';
+		}
+
+		if (array_key_exists('start', $qparams)) {
+			$lyt_params['videoStartAt'] = (int)$qparams['start']; // is this always an int? 
+		} else {
+			$lyt_params['videoStartAt'] = 0;
+		}
+
+		return $lyt_params;
 	}
 
 	public function embedVimeo(&$str)
@@ -333,10 +339,8 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		// Handily we can use custom properties to target a shadow dom component.
 		$script .= '<style ' . $nonce . '> :root{ --millco-lvo-playbtn:' . $this->vimeo_colour . '; --millco-yt: ' . $this->youtube_colour . ' }</style>';
 
-
 		// We explictily write our js here now with full paths
 		// because import is fussy about dynamic paths.
-
 		$script .= '<script class="millco_lite_youtube" ' . $nonce . '>';
 
 		//$script .= 'var tflve_script_path="' . $tflve_script_path . '";' . PHP_EOL;
@@ -383,6 +387,11 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 			$lyt_markup .= ' videoStartAt="' . $lyt_params['videoStartAt'] . '"';
 		}
 
+		// If we pass a thumbnail then add that to our tag as a dataset item.
+		if ($lyt_params['thumbnail']) {
+			$lyt_markup .= ' data-thumbnail="' . $lyt_params['thumbnail'] . '"';
+		}
+
 		$lyt_markup .= '>';
 
 		// fallback for old browsers.
@@ -396,9 +405,9 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 	/**
 	 * Write out the markup for a vimeo-lite tag.
-	 * @param string $video_id The YouTube id of the video
-	 * @param string $lv parmas Params to pass to youtube
-	 * @param string $line The url that we're going to replace with our markup.
+	 * @param String $video_id The YouTube id of the video
+	 * @param String $lv parmas Params to pass to youtube
+	 * @param String $line The url that we're going to replace with our markup.
 	 * 
 	 */
 	function get_lv_markup($video_id, $lv_params, $line)
@@ -407,6 +416,9 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		$lv_markup = '';
 
 		$lv_markup .= '<lite-vimeo class="lv_element lv_element_vimeo" videoid="' . $video_id . '" params="' . $lv_params . '" >';
+
+		// TODO: the vimeo script will let use use a background image so we should something similar for thumbnail that we've done
+		// with YT.
 
 		// fallback for old browsers.
 		$fallback_url = $this->url_from_line($line);
@@ -418,7 +430,7 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 	/**
 	 * Tidy the line we captured (and are replacing) to get the actual URL without tags.
-	 *  @param string $line The paragraph of text we're replacing.
+	 *  @param String $line The paragraph of text we're replacing.
 	 * 
 	 */
 
