@@ -13,8 +13,8 @@ if (typeof window.text_formatter_lite_video_embed_scripts_loaded === 'undefined'
 	async function loadYTLite() {
 
 		//TODO set flags just load whichever one we need?
-		const LiteYTEmbed = await import(tflve_script_path + '/lite-youtube.js');
-		const LiteVimeoEmbed = await import(tflve_script_path + '/lite-vimeo.js');
+		const LiteYTEmbed = await import(tflve_script_path + '/lite-youtube.js?v=1');
+		const LiteVimeoEmbed = await import(tflve_script_path + '/lite-vimeo.js?v=1');
 		
 	}
 

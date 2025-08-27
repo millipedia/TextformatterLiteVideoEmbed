@@ -351,8 +351,8 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 
 		$script .= "async function loadYTLite() {" . PHP_EOL;
 
-		$script .= "const LiteYTEmbed = await import('$tflve_script_path/lite-youtube.js');" . PHP_EOL;
-		$script .= "const LiteVimeoEmbed = await import('$tflve_script_path/lite-vimeo.js');" . PHP_EOL;
+		$script .= "const LiteYTEmbed = await import('$tflve_script_path/lite-youtube.js?v=1');" . PHP_EOL;
+		$script .= "const LiteVimeoEmbed = await import('$tflve_script_path/lite-vimeo.js?v=1');" . PHP_EOL;
 
 		$script .= "}" . PHP_EOL;
 

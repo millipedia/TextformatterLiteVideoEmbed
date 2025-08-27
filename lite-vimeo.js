@@ -101,7 +101,9 @@ let LiteVimeoEmbed = /** @class */ (() => {
           display: block;
           position: relative;
           width: 100%;
-          padding-bottom: calc(100% / (16 / 9));
+		  max-width: 920px;
+		  margin-inline: auto;
+          aspect-ratio: 16 / 9;
         }
 
         #frame, #fallbackPlaceholder, iframe {

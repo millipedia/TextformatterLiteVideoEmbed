@@ -79,12 +79,14 @@ export class LiteYTEmbed extends HTMLElement {
           display: block;
           position: relative;
           width: 100%;
-          padding-bottom: calc(100% / (16 / 9));
+		  max-width: 920px;
+		  margin-inline: auto;
+          aspect-ratio: 16 / 9;
         }
 
         @media (max-width: 40em) {
           :host([short]) {
-            padding-bottom: calc(100% / (9 / 16));
+            aspect-ratio: 9 / 16;
           }
         }
 
