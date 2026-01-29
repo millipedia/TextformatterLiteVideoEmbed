@@ -125,15 +125,17 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		) return;
 
 
+
 		// regex to find YouTube link in a paragraph
 		// TODO: do I have one for non-cookie domain somewhere? Sure I did... anyway we could use no-cookie in the markup as an option.
 
 		// do we know what field type this is? must do surely? If not can we just ass-u-me that if we have a paragraph tag it's
 		// a text area and if not it's a text input... hmmm.
 
-		$regex = '#<p>\s*(https?://(?:www\.)?youtu(?:.be|be.com)+/(?:watch/?\?v=|v/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
+		$regex = '#<p>\s*(https?:\/\/(?:www\.)?youtu(?:.be|be.com)+\/(?:watch\/?\?v=|v\/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*?</p>#';
 
 		if (preg_match_all($regex, $str, $matches) > 0) {
+
 
 			foreach ($matches[0] as $key => $line) {
 
@@ -158,29 +160,18 @@ class TextformatterLiteVideoEmbed extends Textformatter implements Module, Confi
 		} else {
 
 			// See if we can do the same for a text field with just the URL in.
-			// regex to find YT link in text field (rather than editor field).
-			// $regex = '^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*';
 
-			// if we just have the url then see if we can parse it
-			if ($url_vars = parse_url($str, PHP_URL_QUERY)) {
+			// Does this string begin with a YouTube URL?
+			// in either youtube format or watch format
+			if (preg_match('/^(https?:\/\/(?:www\.)?youtu(?:.be|be.com)+\/(?:watch\/?\?v=|v\/)?([^\s&<\'"]+))(&[-_,.=&;a-zA-Z0-9]*)?.*$/', $str, $matches)) {
 
-				parse_str($url_vars, $varrray);
+				$video_id = $matches[2];
+				$lyt_params = $this->get_lyt_parameters($str);
+				$lyt_markup = $this->get_lyt_markup($video_id, $lyt_params, $str);
+				$str = str_replace($str, $lyt_markup, $str);
+			}
 
-				$lyt_params=$this->get_lyt_parameters($str);
-
-				if (isset($varrray['v'])) { // TODO: need to deal with URLS that are in the watch format and don't have a v= paramter
-
-					$video_id = $varrray['v'];
-
-					$line = $str;
-
-					// get the markup
-					$lyt_markup = $this->get_lyt_markup($video_id, $lyt_params, $line);
-
-					// replace the captured text with the markup.
-					$str = str_replace($line, $lyt_markup, $str);
-				};
-			};
+			
 		}
 
 		// can we add our script to wire->config->scripts?
